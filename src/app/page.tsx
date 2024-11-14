@@ -25,8 +25,8 @@ interface Item {
 
 export default function Page() {
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem("accessToken"));
-  const [refreshTokenValue, setRefreshTokenValue] = useState<string>(localStorage.getItem("refreshTokenValue") || "5766544f464b6c624d68637241784251");
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshTokenValue, setRefreshTokenValue] = useState<string>("5766544f464b6c624d68637241784251");  
   const [orders, setOrders] = useState<Order[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,6 +66,22 @@ export default function Page() {
       setOrderLoading(false);
     }
   };
+
+
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    // Load accessToken and refreshTokenValue from localStorage
+    const storedAccessToken = localStorage.getItem("accessToken");
+    const storedRefreshToken = localStorage.getItem("refreshTokenValue");
+
+    if (storedAccessToken) {
+      setAccessToken(storedAccessToken);
+    }
+    if (storedRefreshToken) {
+      setRefreshTokenValue(storedRefreshToken);
+    }
+  }
+}, []);
 
  // ใน refreshToken function ให้เพิ่มการเก็บ timestamp
 const refreshToken = async () => {
