@@ -38,7 +38,7 @@ export default function Page() {
 
   const refreshToken = async () => {
     try {
-      const url = `http://119.59.103.209:8080/refresh_token?refresh_token=${refreshTokenValue}`;
+      const url = `https://order-api-dev.thetigerteamacademy.net/refresh_token?refresh_token=${refreshTokenValue}`;
       const response = await axios.post(url, null, { headers: { accept: "application/json" } });
       const newAccessToken = response.data.access_token;
       const newRefreshToken = response.data.refresh_token;
@@ -64,7 +64,7 @@ export default function Page() {
         request_order_status_pending: "false",
         response_optional_fields: "buyer_username,pay_time,item_list",
       });
-      const url = `http://119.59.103.209:8080/get_all_orders?${params}`;
+      const url = `https://order-api-dev.thetigerteamacademy.net/get_all_orders?${params}`;
       const response = await axios.post(url);
       setOrders(response.data.order_detail);
     } catch (error) {
