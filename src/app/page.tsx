@@ -133,9 +133,9 @@ export default function Page() {
     const table = document.querySelector("table") as HTMLTableElement | null;
 
     if (table) {
-      html2canvas(table, { scale: 3, useCORS: true }).then((canvas) => {
+      html2canvas(table, { scale: 1.5, useCORS: true }).then((canvas) => {
         const pdf = new jsPDF("landscape", "mm", "a4");
-        const imgData = canvas.toDataURL("image/png");
+        const imgData = canvas.toDataURL("image/jpeg", 0.5);
         const pageWidth = pdf.internal.pageSize.getWidth();
         const contentWidth = pageWidth - 16;
         const contentHeight = (canvas.height * contentWidth) / canvas.width;
