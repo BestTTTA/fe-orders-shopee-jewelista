@@ -25,8 +25,8 @@ interface Item {
 
 export default function Page() {
   const [loaded, setLoaded] = useState<boolean>(false);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshTokenValue, setRefreshTokenValue] = useState<string>("744c6266634b464f4870414a536e5658");
+  const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem("accessToken"));
+  const [refreshTokenValue, setRefreshTokenValue] = useState<string>(localStorage.getItem("refreshTokenValue") || "5766544f464b6c624d68637241784251");
   const [orders, setOrders] = useState<Order[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,23 +37,6 @@ export default function Page() {
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  const refreshToken = async () => {
-    try {
-      const url = `https://order-api-dev.thetigerteamacademy.net/refresh_token?refresh_token=${refreshTokenValue}`;
-      const response = await axios.post(url, null, { headers: { accept: "application/json" } });
-      const newAccessToken = response.data.access_token;
-      const newRefreshToken = response.data.refresh_token;
-
-      setAccessToken(newAccessToken);
-      setRefreshTokenValue(newRefreshToken);
-
-      return newAccessToken;
-    } catch (error) {
-      console.error("Error refreshing token:", error);
-      throw error;
-    }
-  };
 
   const fetchOrders = async (startDate: string, endDate: string) => {
     setOrderLoading(true);
@@ -84,36 +67,67 @@ export default function Page() {
     }
   };
 
-  useEffect(() => {
-    if (isClient && !accessToken) {
-      const initializeTokenAndFetchOrders = async () => {
-        try {
-          const newAccessToken = await refreshToken();
-          setAccessToken(newAccessToken);
+ // ใน refreshToken function ให้เพิ่มการเก็บ timestamp
+const refreshToken = async () => {
+  try {
+    const url = `https://order-api-dev.thetigerteamacademy.net/refresh_token?refresh_token=${refreshTokenValue}`;
+    const response = await axios.post(url, null, { headers: { accept: "application/json" } });
+    const newAccessToken = response.data.access_token;
+    const newRefreshToken = response.data.refresh_token;
 
-          const endDate = new Date();
-          endDate.setDate(endDate.getDate() + 1);
+    setAccessToken(newAccessToken);
+    setRefreshTokenValue(newRefreshToken);
 
-          const startDate = new Date();
-          startDate.setDate(endDate.getDate() - 10);
+    // เก็บ accessToken, refreshToken, และ timestamp ลงใน localStorage
+    localStorage.setItem("accessToken", newAccessToken);
+    localStorage.setItem("refreshTokenValue", newRefreshToken);
+    localStorage.setItem("tokenTimestamp", Date.now().toString());
 
-          await fetchOrders(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
+    return newAccessToken;
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    throw error;
+  }
+};
 
-          const fetchOrdersInterval = setInterval(async () => {
-            const refreshedToken = await refreshToken();
-            setAccessToken(refreshedToken);
-            await fetchOrders(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
-          }, 10800000);
+useEffect(() => {
+  const tokenTimestamp = localStorage.getItem("tokenTimestamp");
 
-          return () => clearInterval(fetchOrdersInterval);
-        } catch (error) {
-          console.error("Failed to initialize token or fetch orders:", error);
-        }
-      };
+  const checkAndRefreshToken = async () => {
+    if (accessToken && tokenTimestamp) {
+      const timeElapsed = Date.now() - parseInt(tokenTimestamp);
+      const isTokenExpired = timeElapsed > 4 * 60 * 60 * 1000; // 4 ชั่วโมง
 
-      initializeTokenAndFetchOrders();
+      if (isTokenExpired) {
+        await refreshToken();
+      }
+    } else {
+      await refreshToken();
     }
-  }, [isClient, accessToken]);
+
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 1);
+
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - 10);
+
+    await fetchOrders(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
+
+    // Schedule recurring fetches
+    const fetchOrdersInterval = setInterval(async () => {
+      await refreshToken();
+      await fetchOrders(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
+    }, 10800000); // Every 3 hours (3 * 60 * 60 * 1000 ms)
+
+    return () => clearInterval(fetchOrdersInterval);
+  };
+
+  if (isClient) {
+    checkAndRefreshToken();
+  }
+}, [isClient, accessToken]);
+
+
 
   const totalRows = 21;
 
