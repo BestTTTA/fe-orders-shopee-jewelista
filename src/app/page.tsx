@@ -83,21 +83,15 @@ useEffect(() => {
   }
 }, []);
 
- // ใน refreshToken function ให้เพิ่มการเก็บ timestamp
 const refreshToken = async () => {
   try {
-    const url = `https://order-api-dev.thetigerteamacademy.net/refresh_token?refresh_token=${refreshTokenValue}`;
-    const response = await axios.post(url, null, { headers: { accept: "application/json" } });
-    const newAccessToken = response.data.access_token;
-    const newRefreshToken = response.data.refresh_token;
+    const response = await axios.get("/api/refresh_token");
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
 
     setAccessToken(newAccessToken);
     setRefreshTokenValue(newRefreshToken);
 
-    // เก็บ accessToken, refreshToken, และ timestamp ลงใน localStorage
-    localStorage.setItem("accessToken", newAccessToken);
-    localStorage.setItem("refreshTokenValue", newRefreshToken);
-    localStorage.setItem("tokenTimestamp", Date.now().toString());
+    // ไม่มีการเก็บค่าใน localStorage
 
     return newAccessToken;
   } catch (error) {
