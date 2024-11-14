@@ -1,101 +1,260 @@
-import Image from "next/image";
+// src/app/page.tsx
+"use client";
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+import React, { useState } from 'react';
+import data from '../app/mock_up.json';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+export default function Page() {
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [loaded, setLoaded] = useState<boolean>(false)
+
+  const filteredOrders = data.response.order_list.filter((order) => {
+    const orderDate = new Date(order.create_time * 1000);
+    const orderDay = orderDate.getDate();
+    const orderMonth = orderDate.getMonth() + 1;
+
+    return (
+      order.order_status === "READY_TO_SHIP" &&
+      (selectedDate ? orderDay === parseInt(selectedDate) : true) &&
+      (selectedMonth ? orderMonth === parseInt(selectedMonth) : true)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+  const displayedOrders = filteredOrders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const downloadPDF = async () => {
+    setLoaded(true);
+    window.scrollTo(0, 0);
+
+    const content = document.body;
+
+    html2canvas(content, {
+      scale: 3,
+      useCORS: true,
+    }).then((canvas) => {
+      const pdf = new jsPDF("landscape", "mm", "a4");
+
+      const imgData = canvas.toDataURL("image/png");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const margin = 8;
+      const contentWidth = pageWidth - 2 * margin;
+      const contentHeight = canvas.height * contentWidth / canvas.width;
+
+      pdf.addImage(imgData, "PNG", margin, 0, contentWidth, contentHeight);
+      pdf.save("full_page.pdf");
+      setLoaded(false);
+    });
+  };
+
+
+  const Loading = () => {
+    return (
+      <div className="flex justify-center items-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-400 rounded">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="w-32 h-32">
+          <path fill="none" stroke="#fff" strokeWidth="5" d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              dur="1s"
+              from="0 50 50"
+              to="360 50 50"
+              repeatCount="indefinite"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </path>
+        </svg>
+      </div>
+
+
+
+    )
+  }
+
+  const totalRows = 21;
+
+  return (
+    <div className='px-8 py-16'>
+      {
+        loaded ? <Loading /> : null
+      }
+      <h2 className="text-4xl font-bold mb-4 text-center">แบบฟอร์มรับบิลออเดอร์ลูกค้า ONLINE</h2>
+      <div className="flex justify-start mb-4 space-x-4">
+        <button onClick={downloadPDF} className="bg-red-500 text-white px-2 py-2 rounded text-2xl font-bold">
+          ดาวน์โหลด PDF
+        </button>
+
+        <div className="flex items-center space-x-4">
+          <label className='text-3xl font-bold'>วัน:</label>
+          <input
+            type="number"
+            min="1"
+            max="31"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="border border-black p-6 w-15 rounded text-2xl font-bold"
+          />
+          <label className='text-3xl font-bold'>เดือน:</label>
+          <input
+            type="number"
+            min="1"
+            max="12"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="border border-black p-6 w-15 rounded text-2xl font-bold"
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <div className="flex space-x-4">
+          <button
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="bg-gray-500 text-white p-6 rounded text-2xl font-bold"
+          >
+            หน้าก่อนหน้า
+          </button>
+          <button
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="bg-gray-500 text-white p-6 rounded text-2xl font-bold"
+          >
+            หน้าถัดไป
+          </button>
+        </div>
+      </div>
+
+      <div id="pdf-content">
+        <table className="min-w-full bg-white border border-black shadow-lg p-8 text-center text-2xl mt-14">
+          <thead>
+            <tr>
+              <th colSpan={6} className="border border-black bg-blue-400 text-center " style={{ lineHeight: '2' }}>ข้อมูลลูกค้า</th>
+              <th colSpan={6} className="border border-black bg-orange-400 text-center" style={{ lineHeight: '2' }}>ออเดอร์ที่สั่งซื้อ</th>
+              <th colSpan={5} className="border border-black bg-green-400 text-center" style={{ lineHeight: '2' }}>กระบวนการผลิต</th>
+              <th colSpan={6} className="border border-black bg-yellow-400 text-center" style={{ lineHeight: '2' }}>POS</th>
+            </tr>
+            <tr>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">No.</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">วันที่สั่ง</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">เวลาโอน</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">ช่องทาง</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">ชื่อตามช่องทาง</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">ชื่อจริงลูกค้า</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">ออเดอร์ที่สั่ง</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">SUK</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">สี/ไซต์</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">ราคา</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">วิธีจ่ายเงิน</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">มีสิ้นค้า/พรีออเดอร์</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">เบิกจาก</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">ส่งงานให้ช่าง</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">รับงานจากช่าง</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">ปริ้นที่อยู่</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">แพ็ค+จัดส่ง</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">แจ้งเลขพัสดุ</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">No.ลูกค้า</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">เพิ่มชื่อลูกค้า</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">สั่งซื้อเพื่อตัดขาย</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">ย้าย WH ไปส่งแบบOnline</th>
+              <th className="p-2 border border-black bg-gray-100 text-center align-middle whitespace-nowrap">ตัดขาย</th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayedOrders.map((order, orderIndex) => (
+              order.item_list.map((item, itemIndex) => (
+                <tr key={`${order.order_sn}-${itemIndex}`}>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    {(currentPage - 1) * itemsPerPage + orderIndex + 1}
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    {new Date(order.create_time * 1000).toLocaleDateString()}
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    {new Date(order.create_time * 1000).toLocaleTimeString()}
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    Shopee
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    {order.buyer_username}
+                  </td>
+                  <td className="p-4 font-bold border border-black">
+                    <input type="text" className='text-center h-full' />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    {order.order_sn}
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    {item.model_sku}
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    {item.model_name}
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    {item.model_discounted_price}
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    {order.cod ? "COD" : "Prepaid"}
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    <input type="checkbox" className='w-[60px] h-[60PX]' />
+                  </td>
+                  <td className="p-4 font-bold table-cell border border-black text-center align-middle whitespace-nowrap">
+                    <input type="text" className='text-center' />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    <input type="checkbox" className="w-[60px] h-[60PX]" />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle">
+                    <input type="checkbox" className="w-[60px] h-[60PX]" />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle">
+                    <input type="checkbox" className="w-[60px] h-[60PX]" />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    <input type="text" className='text-center h-full' />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle">
+                    <input type="checkbox" className="w-[60px] h-[60PX]" />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle whitespace-nowrap">
+                    <input type="text" className='text-center h-full' />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle">
+                    <input type="checkbox" className="w-[60px] h-[60PX]" />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle">
+                    <input type="checkbox" className="w-[60px] h-[60PX]" />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle">
+                    <input type="checkbox" className="w-[60px] h-[60PX]" />
+                  </td>
+                  <td className="p-4 font-bold border border-black text-center align-middle">
+                    <input type="checkbox" className="w-[60px] h-[60PX]" />
+                  </td>
+                </tr>
+              ))
+            ))}
+            {Array.from({ length: totalRows - filteredOrders.length }).map((_, index) => (
+              <tr key={`empty-${index}`}>
+                {Array.from({ length: 23 }).map((_, colIndex) => (
+                  <td key={colIndex} className="p-2 border border-black text-center align-middle h-[100px]">&nbsp;</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+
+        </table>
+      </div>
     </div>
   );
 }
