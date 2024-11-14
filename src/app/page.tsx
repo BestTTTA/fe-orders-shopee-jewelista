@@ -31,6 +31,7 @@ export default function Page() {
   const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20; // Adjust the number of items displayed per page
+  const [orderLoading, setOrderLoading] = useState<boolean>(false)
 
   useEffect(() => {
     setIsClient(true);
@@ -54,6 +55,7 @@ export default function Page() {
   };
 
   const fetchOrders = async (startDate: string, endDate: string) => {
+    setOrderLoading(true)
     try {
       const token = accessToken || (await refreshToken());
       const params = new URLSearchParams({
@@ -67,6 +69,7 @@ export default function Page() {
       const url = `https://order-api-dev.thetigerteamacademy.net/get_all_orders?${params}`;
       const response = await axios.post(url);
       setOrders(response.data.order_detail);
+      setOrderLoading(false)
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -149,6 +152,8 @@ export default function Page() {
     </div>
   );
 
+
+
   return (
     <div className="">
       <div className="text-black flex flex-col gap-6 p-4">
@@ -156,6 +161,7 @@ export default function Page() {
         <p>RefreshToken: {refreshTokenValue}</p>
       </div>
       {loaded && <Loading />}
+      {orderLoading && <Loading />}
       <div className="flex w-full justify-center">
         <h1 className="text-4xl font-bold mb-4 text-center">แบบฟอร์มรับบิลออเดอร์ลูกค้า ONLINE</h1>
       </div>
