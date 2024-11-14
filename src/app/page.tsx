@@ -120,13 +120,13 @@ export default function Page() {
   // Sort orders by `create_time` in ascending order (oldest to newest)
   const sortedOrders = [...orders].sort((a, b) => a.create_time - b.create_time);
 
-  // Fill orders to totalRows with placeholders if there are fewer rows
-  const filledOrders = [...sortedOrders, ...Array(totalRows - sortedOrders.length).fill(placeholderOrder)];
+  const filledOrders = sortedOrders.length < totalRows
+  ? [...sortedOrders, ...Array(totalRows - sortedOrders.length).fill(placeholderOrder)]
+  : sortedOrders;
 
-  // Calculate pagination
   const totalPages = Math.ceil(filledOrders.length / itemsPerPage);
   const currentPageOrders = filledOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
+  
 
   const downloadPDF = async () => {
     setLoaded(true);
