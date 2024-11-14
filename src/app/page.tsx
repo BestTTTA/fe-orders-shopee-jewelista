@@ -106,7 +106,7 @@ export default function Page() {
     }
   }, [isClient, accessToken]);
 
-  const totalRows = 20;
+  const totalRows = 21;
 
   const placeholderOrder: Order = {
     order_sn: "",
