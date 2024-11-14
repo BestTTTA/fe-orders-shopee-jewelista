@@ -26,14 +26,12 @@ interface Item {
 export default function Page() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [isClient, setIsClient] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [orderLoading, setOrderLoading] = useState<boolean>(false);
   const [selectedPlatform, setSelectedPlatform] = useState("Shopee");
 
   useEffect(() => {
-    setIsClient(true);
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - 15);
