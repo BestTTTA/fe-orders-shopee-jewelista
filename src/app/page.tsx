@@ -55,16 +55,16 @@ export default function Page() {
         request_order_status_pending: "false",
         response_optional_fields: "buyer_username,pay_time,item_list",
       });
-  
+
       const platformUrl: any = {
         Shopee: "https://order-api-dev.thetigerteamacademy.net/get_all_orders",
         Lazada: "https://order-api-dev.thetigerteamacademy.net/get_all_orders_lazada",
         TikTok: "https://order-api-dev.thetigerteamacademy.net/get_all_orders_tiktok",
       };
-  
+
       const url = `${platformUrl[selectedPlatform]}?${params.toString()}`;
       const response = await axios.post(url);
-  
+
       // Set `order_detail` in state instead of `order_list`
       setOrders(response.data.order_detail || []);
     } catch (error) {
@@ -73,7 +73,7 @@ export default function Page() {
       setOrderLoading(false);
     }
   };
-  
+
 
   const totalRows = 21;
 
@@ -124,11 +124,11 @@ export default function Page() {
       <div className="flex">
         {/* Sidebar */}
         <div className="bg-gray-800 min-h-screen p-6 text-white space-y-6">
-          <h2 className="text-2xl font-bold">Platform</h2>
+          <h2 className="text-2xl font-bold">OrderHUB</h2>
           <button onClick={() => setSelectedPlatform("Shopee")} className={`w-full p-2 text-center ${selectedPlatform === "Shopee" ? "bg-orange-500" : "bg-orange-500"} rounded-md p-2`}>
             Shopee
           </button>
-          <button onClick={() => setSelectedPlatform("Lazada")} className={`w-full p-2 text-center ${selectedPlatform === "Lazada" ? "bg-gray-700" : "bg-gray-700"} rounded-md`}>
+          <button onClick={() => setSelectedPlatform("Lazada")} className={`w-full p-2 text-center ${selectedPlatform === "Lazada" ? "bg-blue-500" : "bg-blue-500"} rounded-md`}>
             Lazada
           </button>
           <button onClick={() => setSelectedPlatform("TikTok")} className={`w-full p-2 text-center ${selectedPlatform === "TikTok" ? "bg-gray-700" : "bg-gray-700"} rounded-md`}>
@@ -167,7 +167,7 @@ export default function Page() {
                 <th className="border bg-gray-100  border-black">ชื่อตามช่องทาง</th>
                 <th className="border bg-gray-100 whitespace-nowrap border-black px-20">ชื่อจริงลูกค้า</th>
                 <th className="border bg-gray-100  border-black">ออเดอร์ที่สั่ง</th>
-                <th className="border bg-gray-100  border-black">SUK</th>
+                <th className="border bg-gray-100  border-black">SKU</th>
                 <th className="border bg-gray-100  border-black">สี/ไซต์</th>
                 <th className="border bg-gray-100  border-black">ราคา</th>
                 <th className="border bg-gray-100 whitespace-nowrap border-black">วิธีจ่ายเงิน</th>
@@ -186,62 +186,62 @@ export default function Page() {
               </tr>
             </thead>
             <tbody>
-  {currentPageOrders.map((order, orderIndex) => (
-    <React.Fragment key={orderIndex}>
-      {order.item_list && order.item_list.length > 0 ? (
-        order.item_list.map((item:any, itemIndex:any) => (
-          <tr key={itemIndex} className="whitespace-nowrap">
-            <td className="border border-black text-center">
-              {(currentPage - 1) * itemsPerPage + orderIndex + 1}
-            </td>
-            <td className="border border-black text-center p-4">
-              {order.create_time ? new Date(order.create_time * 1000).toLocaleDateString("en-GB") : ""}
-            </td>
-            <td className="border border-black text-center p-4">
-              {order.create_time ? new Date(order.create_time * 1000).toLocaleTimeString() : ""}
-            </td>
-            <td className="border border-black text-center p-4">Shopee</td>
-            <td className="border border-black text-center p-4">{order.buyer_username}</td>
-            <td className="border border-black"><input type="text" className="text-center w-full p-4" /></td>
-            <td className="border border-black text-center p-4">{order.order_sn}</td>
-            <td className="border border-black text-center p-4">{item.model_sku}</td>
-            <td className="border border-black text-center p-4">{item.model_name}</td>
-            <td className="border border-black text-center p-4">{item.model_discounted_price}</td>
-            <td className="border border-black text-center p-4">{order.cod ? "COD" : ""}</td>
-            {Array.from({ length: 12 }).map((_, colIndex) => (
-              <td key={colIndex} className="border border-black text-center p-4">
-                <input type="text" className="text-center w-24" />
-              </td>
-            ))}
-          </tr>
-        ))
-      ) : (
-        <tr key={orderIndex} className="whitespace-nowrap">
-          <td className="border border-black text-center">
-            {(currentPage - 1) * itemsPerPage + orderIndex + 1}
-          </td>
-          <td className="border border-black text-center p-4">
-            {order.create_time ? new Date(order.create_time * 1000).toLocaleDateString("en-GB") : ""}
-          </td>
-          <td className="border border-black text-center p-4">
-            {order.create_time ? new Date(order.create_time * 1000).toLocaleTimeString() : ""}
-          </td>
-          <td className="border border-black text-center p-4">Shopee</td>
-          <td className="border border-black text-center p-4">{order.buyer_username}</td>
-          <td className="border border-black"><input type="text" className="text-center w-full p-4" /></td>
-          <td className="border border-black text-center p-4">{order.order_sn}</td>
-          <td colSpan={3} className="border border-black text-center p-4">No items</td>
-          <td className="border border-black text-center p-4">{order.cod ? "COD" : ""}</td>
-          {Array.from({ length: 12 }).map((_, colIndex) => (
-            <td key={colIndex} className="border border-black text-center p-4">
-              <input type="text" className="text-center w-24" />
-            </td>
-          ))}
-        </tr>
-      )}
-    </React.Fragment>
-  ))}
-</tbody>
+              {currentPageOrders.map((order, orderIndex) => (
+                <React.Fragment key={orderIndex}>
+                  {order.item_list && order.item_list.length > 0 ? (
+                    order.item_list.map((item: any, itemIndex: any) => (
+                      <tr key={itemIndex} className="whitespace-nowrap">
+                        <td className="border border-black text-center">
+                          {(currentPage - 1) * itemsPerPage + orderIndex + 1}
+                        </td>
+                        <td className="border border-black text-center p-4">
+                          {order.create_time ? new Date(order.create_time * 1000).toLocaleDateString("en-GB") : ""}
+                        </td>
+                        <td className="border border-black text-center p-4">
+                          {order.create_time ? new Date(order.create_time * 1000).toLocaleTimeString() : ""}
+                        </td>
+                        <td className="border border-black text-center p-4">Shopee</td>
+                        <td className="border border-black text-center p-4">{order.buyer_username}</td>
+                        <td className="border border-black"><input type="text" className="text-center w-full p-4" /></td>
+                        <td className="border border-black text-center p-4">{order.order_sn}</td>
+                        <td className="border border-black text-center p-4">{item.model_sku}</td>
+                        <td className="border border-black text-center p-4">{item.model_name}</td>
+                        <td className="border border-black text-center p-4">{item.model_discounted_price}</td>
+                        <td className="border border-black text-center p-4">{order.cod ? "COD" : ""}</td>
+                        {Array.from({ length: 12 }).map((_, colIndex) => (
+                          <td key={colIndex} className="border border-black text-center p-4">
+                            <input type="text" className="text-center w-24" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr key={orderIndex} className="whitespace-nowrap">
+                      <td className="border border-black text-center">
+                        {(currentPage - 1) * itemsPerPage + orderIndex + 1}
+                      </td>
+                      <td className="border border-black text-center p-4">
+                        {order.create_time ? new Date(order.create_time * 1000).toLocaleDateString("en-GB") : ""}
+                      </td>
+                      <td className="border border-black text-center p-4">
+                        {order.create_time ? new Date(order.create_time * 1000).toLocaleTimeString() : ""}
+                      </td>
+                      <td className="border border-black text-center p-4">Shopee</td>
+                      <td className="border border-black text-center p-4">{order.buyer_username}</td>
+                      <td className="border border-black"><input type="text" className="text-center w-full p-4" /></td>
+                      <td className="border border-black text-center p-4">{order.order_sn}</td>
+                      <td colSpan={3} className="border border-black text-center p-4">No items</td>
+                      <td className="border border-black text-center p-4">{order.cod ? "COD" : ""}</td>
+                      {Array.from({ length: 12 }).map((_, colIndex) => (
+                        <td key={colIndex} className="border border-black text-center p-4">
+                          <input type="text" className="text-center w-24" />
+                        </td>
+                      ))}
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
           </table>
         </div>
       </div>
