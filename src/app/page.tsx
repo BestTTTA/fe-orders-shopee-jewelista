@@ -27,7 +27,7 @@ export default function Page() {
   const [loaded, setLoaded] = useState<boolean>(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 25;
   const [orderLoading, setOrderLoading] = useState<boolean>(false);
   const [selectedPlatform, setSelectedPlatform] = useState("Shopee");
 
@@ -74,7 +74,6 @@ export default function Page() {
     }
   };
 
-
   const totalRows = 21;
 
   const placeholderOrder: Order = {
@@ -94,20 +93,20 @@ export default function Page() {
 
   const totalPages = Math.ceil(filledOrders.length / itemsPerPage);
   const currentPageOrders = filledOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
+  const currentDate = new Date()
   const downloadPDF = async () => {
     setLoaded(true);
     const table = document.querySelector("table") as HTMLTableElement | null;
 
     if (table) {
-      html2canvas(table, { scale: 1.5, useCORS: true }).then((canvas) => {
+      html2canvas(table, { scale: 1, useCORS: true }).then((canvas) => {
         const pdf = new jsPDF("landscape", "mm", "a4");
-        const imgData = canvas.toDataURL("image/jpeg", 0.5);
+        const imgData = canvas.toDataURL("image/jpeg", 1);
         const pageWidth = pdf.internal.pageSize.getWidth();
         const contentWidth = pageWidth - 16;
         const contentHeight = (canvas.height * contentWidth) / canvas.width;
-        pdf.addImage(imgData, "PNG", 8, 18, contentWidth, contentHeight);
-        pdf.save("table_only.pdf");
+        pdf.addImage(imgData, "JPEG", 8, 18, contentWidth, contentHeight);
+        pdf.save(`orders_${currentDate}.pdf`);
         setLoaded(false);
       });
     }
@@ -124,7 +123,7 @@ export default function Page() {
       <div className="flex">
         {/* Sidebar */}
         <div className="bg-gray-800 min-h-screen p-6 text-white space-y-6">
-          <h2 className="text-2xl font-bold">OrderHUB</h2>
+          <h2 className="text-2xl font-bold">OrderHub</h2>
           <button onClick={() => setSelectedPlatform("Shopee")} className={`w-full p-2 text-center ${selectedPlatform === "Shopee" ? "bg-orange-500" : "bg-orange-500"} rounded-md p-2`}>
             Shopee
           </button>
@@ -145,96 +144,127 @@ export default function Page() {
         </div>
 
         <div className="flex justify-start space-x-4 mb-2">
-          <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="bg-gray-500 text-white p-4 rounded text-2xl font-bold hover:scale-105 focus:bg-gray-700">หน้าก่อนหน้า</button>
+          <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="bg-gray-500 text-white p-4 rounded text-2xl font-bold hover:scale-105 focus:bg-gray-700 cursor-pointer">หน้าก่อนหน้า</button>
           <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="bg-gray-500 text-white p-4 rounded text-2xl font-bold hover:scale-105 focus:bg-gray-700">หน้าถัดไป</button>
           <button onClick={downloadPDF} className="bg-red-500 text-white px-2 py-2 rounded text-xl font-bold hover:scale-105">ดาวน์โหลด PDF</button>
         </div>
 
         <div id="pdf-content">
-          <table className="min-w-full bg-white border border-black shadow-lg text-center text-2xl">
+          <table className="min-w-full bg-white border border-black shadow-lg text-xl">
             <thead>
-              <tr className="">
-                <th colSpan={6} className="border p-1 border-black bg-blue-400">ข้อมูลลูกค้า</th>
-                <th colSpan={6} className="border p-1 border-black bg-orange-400">ออเดอร์ที่สั่งซื้อ</th>
-                <th colSpan={5} className="border p-1 border-black bg-green-400">กระบวนการผลิต</th>
-                <th colSpan={6} className="border p-1 border-black bg-yellow-400">POS</th>
+            <tr>
+                <th colSpan={23} className="p-3 text-center font-extrabold text-4xl">แบบฟอร์มรับบิลออเดอร์ลูกค้า ONLINE</th>
               </tr>
-              <tr className=" border-black">
-                <th className="border bg-gray-100  border-black p-2">No.</th>
-                <th className="border bg-gray-100  border-black">วันที่สั่ง</th>
-                <th className="border bg-gray-100  border-black">เวลาโอน</th>
-                <th className="border bg-gray-100  border-black">ช่องทาง</th>
-                <th className="border bg-gray-100  border-black">ชื่อตามช่องทาง</th>
-                <th className="border bg-gray-100 whitespace-nowrap border-black px-20">ชื่อจริงลูกค้า</th>
-                <th className="border bg-gray-100  border-black">ออเดอร์ที่สั่ง</th>
-                <th className="border bg-gray-100  border-black">SKU</th>
-                <th className="border bg-gray-100  border-black">สี/ไซต์</th>
-                <th className="border bg-gray-100  border-black">ราคา</th>
-                <th className="border bg-gray-100 whitespace-nowrap border-black">วิธีจ่ายเงิน</th>
-                <th className="border bg-gray-100  border-black">มีสิ้นค้า/พรีออเดอร์</th>
-                <th className="border bg-gray-100  border-black">เบิกจาก</th>
-                <th className="border bg-gray-100  border-black">ส่งงานให้ช่าง</th>
-                <th className="border bg-gray-100  border-black">รับงานจากช่าง</th>
-                <th className="border bg-gray-100  border-black">ปริ้นที่อยู่</th>
-                <th className="border bg-gray-100  border-black">แพ็ค+จัดส่ง</th>
-                <th className="border bg-gray-100  border-black">แจ้งเลขพัสดุ</th>
-                <th className="border bg-gray-100  border-black">No.ลูกค้า</th>
-                <th className="border bg-gray-100  border-black">เพิ่มชื่อลูกค้า</th>
-                <th className="border bg-gray-100  border-black">สั่งซื้อเพื่อตัดขาย</th>
-                <th className="border bg-gray-100  border-black">ย้าย WH ไปส่งแบบOnline</th>
-                <th className="border bg-gray-100  border-black">ตัดขาย</th>
+              <tr>
+                <th colSpan={6} className="border border-black bg-blue-400 p-3 text-center font-semibold">ข้อมูลลูกค้า</th>
+                <th colSpan={6} className="border border-black bg-orange-400 p-3 text-center font-semibold ">ออเดอร์ที่สั่งซื้อ</th>
+                <th colSpan={5} className="border border-black bg-green-400 p-3 text-center font-semibold ">กระบวนการผลิต</th>
+                <th colSpan={6} className="border border-black bg-yellow-400 p-3 text-center font-semibold ">POS</th>
+              </tr>
+              <tr>
+                {[
+                  "No.",
+                  "วันที่สั่ง",
+                  "เวลาโอน",
+                  "ช่องทาง",
+                  "ชื่อตามช่องทาง",
+                  "ชื่อจริงลูกค้า",
+                  "ออเดอร์ที่สั่ง",
+                  "SKU",
+                  "สี/ไซต์",
+                  "ราคา",
+                  "วิธีจ่ายเงิน",
+                  "มีสินค้า/พรีออเดอร์",
+                  "เบิกจาก",
+                  "ส่งงาน_ให้ช่าง",
+                  "รับงาน_จากช่าง",
+                  "ที่_อยู่",
+                  "แพ็ค+จัดส่ง",
+                  "แจ้งเลขพัสดุ",
+                  "No.ลูกค้า",
+                  "เพิ่มชื่อลูกค้า",
+                  "สั่งซื้อ_เพื่อตัดขาย",
+                  "ย้าย WHไป_ส่งแบบOnline",
+                  "ตัดขาย"
+                ].map((header, index) => (
+                  <th
+                    key={index}
+                    className="border border-black bg-gray-100 p-3 text-center font-bold"
+                    dangerouslySetInnerHTML={{ __html: header }}
+                  />
+                ))}
               </tr>
             </thead>
+
             <tbody>
               {currentPageOrders.map((order, orderIndex) => (
                 <React.Fragment key={orderIndex}>
                   {order.item_list && order.item_list.length > 0 ? (
                     order.item_list.map((item: any, itemIndex: any) => (
-                      <tr key={itemIndex} className="whitespace-nowrap">
-                        <td className="border border-black text-center">
+                      <tr
+                        key={itemIndex}
+                        className={`border font-bold border-black ${orderIndex % 2 === 0 ? "bg-[#F3FEB8]" : "bg-white"}`}
+                      >
+                        <td className="border border-black px-2 py-1 whitespace-nowrap">
                           {(currentPage - 1) * itemsPerPage + orderIndex + 1}
                         </td>
-                        <td className="border border-black text-center p-4">
+                        <td className="border border-black px-2 py-1 whitespace-nowrap">
                           {order.create_time ? new Date(order.create_time * 1000).toLocaleDateString("en-GB") : ""}
                         </td>
-                        <td className="border border-black text-center p-4">
+                        <td className="border border-black px-2 py-1 whitespace-nowrap">
                           {order.create_time ? new Date(order.create_time * 1000).toLocaleTimeString() : ""}
                         </td>
-                        <td className="border border-black text-center p-4">Shopee</td>
-                        <td className="border border-black text-center p-4">{order.buyer_username}</td>
-                        <td className="border border-black"><input type="text" className="text-center w-full p-4" /></td>
-                        <td className="border border-black text-center p-4">{order.order_sn}</td>
-                        <td className="border border-black text-center p-4">{item.model_sku}</td>
-                        <td className="border border-black text-center p-4">{item.model_name}</td>
-                        <td className="border border-black text-center p-4">{item.model_discounted_price}</td>
-                        <td className="border border-black text-center p-4">{order.cod ? "COD" : ""}</td>
+                        <td className="border border-black px-2 py-1 whitespace-nowrap">Shopee</td>
+                        <td className="border border-black px-2 py-1 whitespace-nowrap">{order.buyer_username}</td>
+                        <td className="border border-black px-2 py-2 whitespace-nowrap">
+                          <input
+                            type="text"
+                            className={`w-80 ${orderIndex % 2 === 0 ? "bg-[#F3FEB8]" : "bg-white"}`}
+                          />
+                        </td>
+                        <td className="border border-black px-2 py-1 whitespace-nowrap">{order.order_sn}</td>
+                        <td className="border border-black px-2 py-1 whitespace-nowrap">{item.model_sku}</td>
+                        <td className="border border-black px-2 py-1 whitespace-nowrap">{item.model_name}</td>
+                        <td className="border border-black px-2 py-1 whitespace-nowrap">{item.model_discounted_price}</td>
+                        <td className="border border-black px-2 py-1 whitespace-nowrap">{order.cod ? "COD" : ""}</td>
                         {Array.from({ length: 12 }).map((_, colIndex) => (
-                          <td key={colIndex} className="border border-black text-center p-4">
-                            <input type="text" className="text-center w-24" />
-                          </td>
+                          <td key={colIndex} className="border border-black whitespace-nowrap"></td>
                         ))}
                       </tr>
                     ))
                   ) : (
-                    <tr key={orderIndex} className="whitespace-nowrap">
-                      <td className="border border-black text-center">
+                    <tr
+                      key={orderIndex}
+                      className={`border border-black ${orderIndex % 2 === 0 ? "bg-[#F3FEB8]" : "bg-white"}`}
+                    >
+                      <td className="border border-black px-2 py-1 whitespace-nowrap">
                         {(currentPage - 1) * itemsPerPage + orderIndex + 1}
                       </td>
-                      <td className="border border-black text-center p-4">
+                      <td className="border border-black px-2 py-1 whitespace-nowrap">
                         {order.create_time ? new Date(order.create_time * 1000).toLocaleDateString("en-GB") : ""}
                       </td>
-                      <td className="border border-black text-center p-4">
+                      <td className="border border-black px-2 py-1 whitespace-nowrap">
                         {order.create_time ? new Date(order.create_time * 1000).toLocaleTimeString() : ""}
                       </td>
-                      <td className="border border-black text-center p-4">Shopee</td>
-                      <td className="border border-black text-center p-4">{order.buyer_username}</td>
-                      <td className="border border-black"><input type="text" className="text-center w-full p-4" /></td>
-                      <td className="border border-black text-center p-4">{order.order_sn}</td>
-                      <td colSpan={3} className="border border-black text-center p-4">No items</td>
-                      <td className="border border-black text-center p-4">{order.cod ? "COD" : ""}</td>
+                      <td className="border border-black px-2 py-1 whitespace-nowrap">Shopee</td>
+                      <td className="border border-black px-2 py-1 whitespace-nowrap">{order.buyer_username}</td>
+                      <td className="border border-black px-2 py-1 whitespace-nowrap">
+                        <input
+                          type="text"
+                          className={`w-full ${orderIndex % 2 === 0 ? "bg-[#F3FEB8]" : "bg-white"}`}
+                        />
+                      </td>
+                      <td className="border border-black px-2 py-1 whitespace-nowrap">{order.order_sn}</td>
+                      <td colSpan={3} className="border border-black px-2 py-1 whitespace-nowrap">
+                        No items
+                      </td>
+                      <td className="border border-black px-2 py-1 whitespace-nowrap">{order.cod ? "COD" : ""}</td>
                       {Array.from({ length: 12 }).map((_, colIndex) => (
-                        <td key={colIndex} className="border border-black text-center p-4">
-                          <input type="text" className="text-center w-24" />
+                        <td key={colIndex} className="border border-black px-2 py-1 whitespace-nowrap">
+                          <input
+                            type="text"
+                            className={`w-full ${orderIndex % 2 === 0 ? "bg-[#F3FEB8]" : "bg-white"}`}
+                          />
                         </td>
                       ))}
                     </tr>
@@ -242,6 +272,7 @@ export default function Page() {
                 </React.Fragment>
               ))}
             </tbody>
+
           </table>
         </div>
       </div>
